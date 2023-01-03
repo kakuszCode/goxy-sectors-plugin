@@ -14,7 +14,7 @@ public class UpdateDataSectorTask extends PubSubAbstract implements Runnable {
 
     public UpdateDataSectorTask(PubSub pubSub, Configuration configuration) {
         super(pubSub);
-        this.sectorDataRedis = new SectorDataRedis(configuration.getMainSector().getName(), configuration.getMainSector().getUuidServer(), MinecraftServer.getServer().recentTps[0], Bukkit.getOnlinePlayers().size());
+        this.sectorDataRedis = new SectorDataRedis(configuration.getMainSector().getName(), configuration.getMainSector().getUuidServer(),configuration.getMainSector().getSectorDirectionEnum(), MinecraftServer.getServer().recentTps[0], Bukkit.getOnlinePlayers().size());
     }
 
     @Override
