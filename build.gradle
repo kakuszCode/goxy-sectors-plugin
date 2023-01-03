@@ -1,0 +1,93 @@
+plugins {
+    id 'java'
+    id "com.github.johnrengelman.shadow"  version "7.1.2"
+    id "net.minecrell.plugin-yml.bukkit" version "0.5.2"
+    id "xyz.jpenilla.run-paper" version "1.0.6"
+}
+
+group = 'pl.robalmeister'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven{ url = "https://repo.codemc.io/repository/nms/" }
+    maven {
+        url "https://repo.goxy.pl"
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven { url "https://storehouse.okaeri.eu/repository/maven-public/" }
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    implementation 'com.sparkjava:spark-core:2.9.4'
+    compileOnly "pl.goxy.minecraft:goxy-api:0.7.1"
+    compileOnly "pl.goxy.minecraft:goxy-pubsub-api:0.1.0"
+    implementation 'eu.okaeri:okaeri-injector:2.1.0'
+    implementation "net.kyori:adventure-platform-bukkit:4.2.0"
+    implementation 'eu.okaeri:okaeri-configs-yaml-bukkit:4.0.8'
+    compileOnly 'org.spigotmc:spigot:1.19.3-R0.1-SNAPSHOT'
+}
+
+shadowJar{
+    //"org/intellij/lang/annotations/**",
+    //            "org/jetbrains/annotations/**",
+    exclude("META-INF/**")
+    archiveFileName = "goxy-sectors-plugin-v${project.version}.jar"
+
+    mergeServiceFiles()
+    minimize()
+
+    def prefix = "pl.robalmeister.goxysectorsplugin.libs"
+    Arrays.asList(
+            "eu.okaeri",
+    ).forEach {
+        relocate(it, prefix)
+    }
+}
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+tasks {
+    runServer {
+        minecraftVersion "1.19"
+    }
+}
+bukkit {
+    main = "pl.robalmeister.goxysectorsplugin.GoxySectorsPlugin"
+    apiVersion = "1.13"
+    author = "robalmeister"
+    name = "GoxySectorsPlugin"
+    version = "${project.version}"
+    depend = ['goxy', "goxy-pubsub-plugin"]
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
